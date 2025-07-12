@@ -81,7 +81,7 @@ const assignSwapper = async (req, res) => {
       {
         $set: {
           targetEmail,
-          status: 'waiting', // waiting for target to accept
+          status: 'matched', // waiting for target to accept
           matchedWith: {
             email: targetEmail,
             skillOffered: requestB.skillOffered
@@ -129,7 +129,28 @@ const assignSwapper = async (req, res) => {
   }
 };
 
+const getAllSwapRequests = async (req, res) => {
+  try {
+    const db = getDB();
+
+    // You can filter only pending ones if needed:
+    const allRequests = await db.collection('swapRequests')
+      .find({ status: 'pending' })  // remove this filter to get all
+      .toArray();
+
+    res.status(200).json({
+      message: 'All swap requests fetched successfully',
+      data: allRequests
+    });
+
+  } catch (err) {
+    console.error('Error fetching all swap requests:', err.message);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
 module.exports = {
   createSwapRequest,
-  assignSwapper
+  assignSwapper,
+  getAllSwapRequests
 };

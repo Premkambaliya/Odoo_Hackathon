@@ -149,8 +149,34 @@ const getAllSwapRequests = async (req, res) => {
   }
 };
 
+const getIncomingSwaps = async (req, res) => {
+  try {
+    const userEmail = req.query.email;
+    console.log('Fetching incoming swaps for:', userEmail);
+    if (!userEmail) {
+      return res.status(400).json({ message: 'Missing user email' });
+    }
+
+    const db = getDB();
+
+    // Find all requests where this user is the assigned swapper
+    const incoming = await db.collection('swapRequests')
+      .find({ targetEmail: userEmail })
+      .toArray();
+
+    res.status(200).json({
+      message: 'Incoming swap requests fetched successfully',
+      data: incoming
+    });
+
+  } catch (err) {
+    console.error('Error fetching incoming swaps:', err.message);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
 module.exports = {
   createSwapRequest,
   assignSwapper,
-  getAllSwapRequests
+  getAllSwapRequests,
+  getIncomingSwaps
 };

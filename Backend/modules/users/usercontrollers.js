@@ -61,4 +61,32 @@ const addUser = async (req, res) => {
   }
 };
 
-module.exports = { addUser };
+const getprofile=async (req, res) => {
+  try {
+    const db = getDB();
+    const useremail = req.params.email;
+    console.log("useremail is",useremail);
+
+    const user = await db.collection('users').findOne({ email: useremail });
+    console.log("user is",user);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      username: user.username,
+      email: user.email,
+      location: user.location,
+      mobile: user.mobile,
+      profilePhoto: user.profilePhoto,
+      isPublic: user.isPublic,
+      role: user.role,
+      createdAt: user.createdAt
+    });
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
+module.exports = { addUser,getprofile };

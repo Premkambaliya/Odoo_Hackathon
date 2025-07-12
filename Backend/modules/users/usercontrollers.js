@@ -12,12 +12,17 @@ const addUser = async (req, res) => {
       mobile,
       profilePhoto,
       isPublic,
-      role
+      role,
+      skills = []
     } = req.body;
 
     // Basic validation
     if (!username || !email || !password || !location || !mobile) {
       return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    if (!Array.isArray(skills) || !skills.every(skill => typeof skill === 'string')) {
+      return res.status(400).json({ message: 'Skills must be an array of strings' });
     }
 
     // Check for duplicate email or username
@@ -28,10 +33,10 @@ const addUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    //created at timing
-      const utcNow = new Date();
-      const istOffset = 5.5 * 60 * 60 * 1000; // IST offset in milliseconds
-  const istNow = new Date(utcNow.getTime() + istOffset);
+    // IST Timestamp
+    const utcNow = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istNow = new Date(utcNow.getTime() + istOffset);
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -45,7 +50,8 @@ const addUser = async (req, res) => {
       mobile,
       profilePhoto: profilePhoto || '',
       isPublic: typeof isPublic === 'boolean' ? isPublic : true,
-      role,
+      role: role || 'user',
+      skills,
       createdAt: istNow
     };
 
@@ -61,14 +67,15 @@ const addUser = async (req, res) => {
   }
 };
 
-const getprofile=async (req, res) => {
+const getprofile = async (req, res) => {
   try {
     const db = getDB();
     const useremail = req.params.email;
-    console.log("useremail is",useremail);
+    console.log("useremail is", useremail);
 
     const user = await db.collection('users').findOne({ email: useremail });
-    console.log("user is",user);
+    console.log("user is", user);
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -81,12 +88,14 @@ const getprofile=async (req, res) => {
       profilePhoto: user.profilePhoto,
       isPublic: user.isPublic,
       role: user.role,
+      skills: user.skills, // ✅ Add this line
       createdAt: user.createdAt
     });
   } catch (error) {
     console.error('Error fetching profile:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
-}
+};
+
 
 module.exports = { addUser,getprofile };
